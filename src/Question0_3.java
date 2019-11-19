@@ -5,7 +5,6 @@ import java.util.HashMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -39,35 +38,43 @@ public class Question0_3 {
 	}
 
 	public static class MyReducer extends Reducer<Text, Text, Text, Text> {
-		HashMap<String,Integer> hashMap;
-		
+		HashMap<String, Integer> hashMap;
+
 		@Override
 		protected void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
+
+			int occurences = context.getConfiguration().getInt("numberOfTags", -1);
+
 			hashMap = new HashMap<String, Integer>();
 			Comparator<StringAndInt> comparator = new Comparator<StringAndInt>() {
 				@Override
 				public int compare(StringAndInt o1, StringAndInt o2) {
-					return o1.compareTo(o2);
+					return o2.compareTo(o1);
 				}
 			};
-			MinMaxPriorityQueue<StringAndInt> minMax = MinMaxPriorityQueue.orderedBy(comparator).maximumSize(13).create();
-			
+			MinMaxPriorityQueue<StringAndInt> minMax = MinMaxPriorityQueue.orderedBy(comparator).maximumSize(occurences)
+					.create();
+
 			for (Text value : values) {
 				String stringValue = value.toString();
-				if(!hashMap.containsKey(stringValue)) {
+				if (!hashMap.containsKey(stringValue)) {
 					hashMap.put(stringValue, 1);
-				}else {
-					hashMap.replace(stringValue, hashMap.get(stringValue)+1);
+				} else {
+					hashMap.replace(stringValue, hashMap.get(stringValue) + 1);
 				}
 			}
-			for(String stringLoop : hashMap.keySet()) {
-				minMax.add(new StringAndInt(stringLoop,hashMap.get(stringLoop)));
+			for (String stringLoop : hashMap.keySet()) {
+				minMax.add(new StringAndInt(stringLoop, hashMap.get(stringLoop)));
 			}
-			
-			//Quand on set le max size via un argument, on va juste devoir afficher toute la liste 
-			context.write(key,new Text(minMax.peekLast().tag+minMax.peekLast().occurences));
-			
+			//We print the whole queue for a given country, since the nuber of tags we want has been set through the command line.
+			while (!minMax.isEmpty()) {
+				StringAndInt element = minMax.removeFirst();
+				//Check that the element exists and that the tag is at least a little meaningful.
+				if (!(element == null) && !(element.tag == null) && !element.tag.equals("")) {
+					context.write(key, new Text(element.tag +" "+ element.occurences));
+				}
+			}
 		}
 	}
 
@@ -76,10 +83,10 @@ public class Question0_3 {
 		String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 		String input = otherArgs[0];
 		String output = otherArgs[1];
-		String k = otherArgs[2];
-		//TODO
+		String numberOfTags = otherArgs[2];
+		conf.setInt("numberOfTags", Integer.parseInt(numberOfTags));
 
-		Job job = Job.getInstance(conf, "Question0_0");
+		Job job = Job.getInstance(conf, "Question0_3");
 		job.setJarByClass(Question0_3.class);
 
 		job.setMapperClass(MyMapper.class);

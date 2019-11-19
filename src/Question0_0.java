@@ -21,7 +21,11 @@ public class Question0_0 {
 		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			for(String stringLoop : value.toString().split(" ")) {
 				stringLoop = stringLoop.replaceAll("\\s*,\\s*$", "");
+				stringLoop = stringLoop.replace(".", "");
+				stringLoop = stringLoop.replace(",", "");
+				stringLoop = stringLoop.replace(";", "");
 				stringLoop = stringLoop.trim();
+				
 				context.write(new Text(stringLoop), new IntWritable(1));
 			}
 		}
@@ -46,6 +50,8 @@ public class Question0_0 {
 		String output = otherArgs[1];
 		
 		Job job = Job.getInstance(conf, "Question0_0");
+		job.setNumReduceTasks(3);
+		job.setCombinerClass(MyReducer.class);
 		job.setJarByClass(Question0_0.class);
 		
 		job.setMapperClass(MyMapper.class);
@@ -61,6 +67,8 @@ public class Question0_0 {
 		
 		FileOutputFormat.setOutputPath(job, new Path(output));
 		job.setOutputFormatClass(TextOutputFormat.class);
+		
+		
 		
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
