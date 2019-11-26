@@ -20,7 +20,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
 
 import com.google.common.collect.MinMaxPriorityQueue;
 
-public class Question0_3 {
+public class Question2_2 {
 	public static class MyMapper extends Mapper<LongWritable, Text, Text, StringAndInt> {
 		@SuppressWarnings("deprecation")
 		@Override
@@ -116,7 +116,7 @@ public class Question0_3 {
 		conf.setInt("numberOfTags", Integer.parseInt(numberOfTags));
 
 		Job job = Job.getInstance(conf, "Question0_3");
-		job.setJarByClass(Question0_3.class);
+		job.setJarByClass(Question2_2.class);
 
 		job.setMapperClass(MyMapper.class);
 		job.setMapOutputKeyClass(Text.class);
