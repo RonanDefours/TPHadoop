@@ -1,11 +1,13 @@
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Locale;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.io.WritableComparable;
 
-public class StringAndInt implements Comparable<StringAndInt>, Writable {
+public class StringAndInt implements WritableComparable<StringAndInt> {
 
 	private String tag;
 	private IntWritable occurences;
@@ -28,15 +30,16 @@ public class StringAndInt implements Comparable<StringAndInt>, Writable {
 
 	@Override
 	public void readFields(DataInput arg0) throws IOException {
+		setTag(arg0.readLine());
 		int occ = arg0.readInt();
 		getOccurences().set(occ);
-		setTag(arg0.readUTF());
 	}
 
 	@Override
 	public void write(DataOutput arg0) throws IOException {
+		arg0.writeBytes(getTag()+'\n');
 		arg0.writeInt(getOccurences().get());
-		arg0.writeUTF(getTag());
+
 	}
 	
 	public String toString() {
